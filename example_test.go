@@ -29,7 +29,6 @@ func ExampleSingleThread() {
 	time.Sleep(time.Millisecond * 20)
 	sw.LapWithData("Delete File", map[string]interface{}{
 		"filename": "word.doc",
-		"size":     "1024",
 	})
 
 	// Stop the timer
@@ -40,5 +39,5 @@ func ExampleSingleThread() {
 		fmt.Println(string(b))
 	}
 	// Output:
-	// [{"state":"Create File","time":"0.00"},{"state":"Edit File","time":"0.30"},{"state":"Upload File","time":"3.00"},{"state":"Delete File","time":"0.02","filename":"word.doc","size":"1024"}]
+	// [{"state":"Create File","time":"0.00"},{"state":"Edit File","time":"0.30"},{"state":"Upload File","time":"3.00"},{"state":"Delete File","time":"0.02","filename":"word.doc"}]
 }
