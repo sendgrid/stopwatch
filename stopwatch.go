@@ -6,17 +6,17 @@ import (
 	"time"
 )
 
-func defaultUnitFormatter(duration time.Duration) string {
+func defaultFormatter(duration time.Duration) string {
 	return duration.String()
 }
 
 // Stopwatch is a non high-resolution timer for recording elapsed time deltas
 // to give you some insight into how long things take for your app
 type Stopwatch struct {
-	start, stop   time.Time     // no need for lap, see mark
-	mark          time.Duration // mark is the duration from the start that the most recent lap was started
-	laps          []Lap         //
-	UnitFormatter func(time.Duration) string
+	start, stop time.Time     // no need for lap, see mark
+	mark        time.Duration // mark is the duration from the start that the most recent lap was started
+	laps        []Lap         //
+	Formatter   func(time.Duration) string
 }
 
 // New creates a new stopwatch with starting time offset by

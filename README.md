@@ -3,7 +3,9 @@ stopwatch
 
 This package offers a a nice solution to take some measurements of the various states of your application.  It is a non high-resolution timer that is designed to be fast giving you an accurate picture of how long your code paths are taking.
 
-It is inspired by Tim's `statepart` measurements code within Kamta.  Currently this stopwatch package is not thread-safe, however a thread-safe version may be added in the future.
+It is inspired by Tim Jenkins' `statepart` measurements code within Kamta.  Currently this stopwatch package is not thread-safe, however a thread-safe version may be added in the future.
+
+I am not the original author.  @deckarep is.
 
 ### Usage
 
@@ -54,7 +56,7 @@ func main() {
 	if b, err := json.Marshal(sw); err == nil {
 		fmt.Println(string(b))
 	}
-}	
+}
 ```
 
 ### Sample Output in Json format

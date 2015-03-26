@@ -15,11 +15,11 @@ type Lap struct {
 
 func (l Lap) String() string {
 	// No formatter defined, no problem use the default
-	if l.sw.UnitFormatter == nil {
-		l.sw.UnitFormatter = defaultUnitFormatter
+	if l.sw.Formatter == nil {
+		l.sw.Formatter = defaultFormatter
 	}
 
-	results := fmt.Sprintf("\"state\":\"%s\", \"time\":\"%s\"", l.state, l.sw.UnitFormatter(l.duration))
+	results := fmt.Sprintf("\"state\":\"%s\", \"time\":\"%s\"", l.state, l.sw.Formatter(l.duration))
 
 	// If lap contains some data, let's merge it
 	if l.data != nil && len(l.data) > 0 {
