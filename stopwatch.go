@@ -16,15 +16,18 @@ type Stopwatch struct {
 	start, stop time.Time     // no need for lap, see mark
 	mark        time.Duration // mark is the duration from the start that the most recent lap was started
 	laps        []Lap         //
+	lapChan     chan Lap
+	stopChan    chan struct{}
+	concurrency int
 	Formatter   func(time.Duration) string
 }
 
 // New creates a new stopwatch with starting time offset by
 // a user defined value. Negative offsets result in a countdown
 // prior to the start of the stopwatch.
-func New(offset time.Duration, active bool) *Stopwatch {
-	var sw Stopwatch
-	sw.Reset(offset, active)
+func New(offset time.Duration, active bool, conc int) *Stopwatch {
+	sw := Stopwatch{concurrency: conc}
+	sw.initialize(offset, active)
 	return &sw
 }
 
@@ -44,6 +47,11 @@ func (s *Stopwatch) String() string {
 // Reset allows the re-use of a Stopwatch instead of creating
 // a new one.
 func (s *Stopwatch) Reset(offset time.Duration, active bool) {
+	s.Stop()
+	s.initialize(offset, active)
+}
+
+func (s *Stopwatch) initialize(offset time.Duration, active bool) {
 	now := time.Now()
 	s.start = now.Add(-offset)
 	if active {
@@ -53,6 +61,12 @@ func (s *Stopwatch) Reset(offset time.Duration, active bool) {
 	}
 	s.mark = 0
 	s.laps = nil
+	s.stopChan = make(chan struct{})
+	s.lapChan = make(chan Lap, s.concurrency)
+
+	if active {
+		s.Start()
+	}
 }
 
 // Active returns true if the stopwatch is active (counting up)
@@ -62,6 +76,8 @@ func (s *Stopwatch) Active() bool {
 
 // Stop makes the stopwatch stop counting up
 func (s *Stopwatch) Stop() {
+	s.stopChan <- struct{}{}
+	close(s.stopChan)
 	if s.Active() {
 		s.stop = time.Now()
 	}
@@ -74,6 +90,20 @@ func (s *Stopwatch) Start() {
 		s.start = s.start.Add(diff)
 		s.stop = time.Time{}
 	}
+
+	go func() {
+		for {
+			select {
+			case lap := <-s.lapChan:
+				lap.duration = s.ElapsedTime() - s.mark
+				s.mark = s.ElapsedTime()
+				s.laps = append(s.laps, lap)
+				close(lap.markDone)
+			case <-s.stopChan:
+				return
+			}
+		}
+	}()
 }
 
 // Elapsed time is the time the stopwatch has been active
@@ -91,21 +121,21 @@ func (s *Stopwatch) LapTime() time.Duration {
 
 // Lap starts a new lap, and returns the length of
 // the previous one.
-func (s *Stopwatch) Lap(state string) Lap {
-	lap := Lap{sw: s, state: state, duration: s.ElapsedTime() - s.mark}
-	s.mark = s.ElapsedTime()
-	s.laps = append(s.laps, lap)
-	return lap
+func (s *Stopwatch) Lap(state string) chan struct{} {
+	doneChan := make(chan struct{}, 1)
+	lap := Lap{sw: s, state: state, markDone: doneChan}
+	s.lapChan <- lap
+	return doneChan
 }
 
 // LapWithData starts a new lap, and returns the length of
 // the previous one allowing the user to pass in additional
 // metadata to be recorded.
-func (s *Stopwatch) LapWithData(state string, data map[string]interface{}) Lap {
-	lap := Lap{sw: s, state: state, duration: s.ElapsedTime() - s.mark, data: data}
-	s.mark = s.ElapsedTime()
-	s.laps = append(s.laps, lap)
-	return lap
+func (s *Stopwatch) LapWithData(state string, data map[string]interface{}) chan struct{} {
+	doneChan := make(chan struct{}, 1)
+	lap := Lap{sw: s, state: state, data: data, markDone: doneChan}
+	s.lapChan <- lap
+	return doneChan
 }
 
 // Laps returns a slice of completed lap times

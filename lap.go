@@ -11,6 +11,7 @@ type Lap struct {
 	state    string
 	duration time.Duration
 	data     map[string]interface{}
+	markDone chan struct{}
 }
 
 func (l Lap) String() string {

@@ -5,8 +5,6 @@ This package offers a a nice solution to take some measurements of the various s
 
 It is inspired by Tim Jenkins' `statepart` measurements code within Kamta.  Currently this stopwatch package is not thread-safe, however a thread-safe version may be added in the future.
 
-I am not the original author.  @deckarep is.
-
 ### Usage
 
 ```Go
@@ -14,20 +12,19 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/sendgrid/stopwatch"
 	"fmt"
-	"github.com/sendgrid/sendlib-go/stopwatch"
-	"time"
 )
 
 func main() {
 
 	// Create a new StopWatch that starts off counting
-	sw := stopwatch.New(0, true)
+	sw := stopwatch.New(0, true, 10)
 
 	// Optionally, format that time.Duration how you need it
-	// sw.UnitFormatter = func(duration time.Duration) string {
-	// 	return fmt.Sprintf("%.3f", (duration.Seconds()*1000.0)/1000.0)
-	// }
+	sw.Formatter = func(duration time.Duration) string {
+		return fmt.Sprintf("%.1f", duration.Seconds())
+	}
 
 	// Take measurement of various states
 	sw.Lap("Create File")
@@ -36,18 +33,17 @@ func main() {
 	time.Sleep(time.Millisecond * 300)
 	sw.Lap("Edit File")
 
-	time.Sleep(time.Second * 2)
-	sw.Lap("Save File")
-
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 1)
 	sw.Lap("Upload File")
 
 	// Take a measurement with some additional metadata
+	// Measurement taking is generally asynchronous, if you want to make it
+	// synchrounous (as in right before you stop the clock), wait on the channel that is returned on the lap function call.
 	time.Sleep(time.Millisecond * 20)
-	sw.LapWithData("Delete File", map[string]interface{}{
+	doneChan := sw.LapWithData("Delete File", map[string]interface{}{
 		"filename": "word.doc",
-		"size":     "1024",
 	})
+	<-doneChan
 
 	// Stop the timer
 	sw.Stop()
@@ -56,6 +52,9 @@ func main() {
 	if b, err := json.Marshal(sw); err == nil {
 		fmt.Println(string(b))
 	}
+
+	// Output:
+	// [{"state":"Create File","time":"0.0"},{"state":"Edit File","time":"0.3"},{"state":"Upload File","time":"1.0"},{"state":"Delete File","time":"0.0","filename":"word.doc"}]
 }
 ```
 
@@ -87,3 +86,54 @@ func main() {
     }
 ]
 ```
+
+You can also use stopwatch inside different goroutines like so,
+```Go
+	// Create a new StopWatch that starts off counting
+	sw := stopwatch.New(0, true, 10)
+
+	// Optionally, format that time.Duration how you need it
+	sw.Formatter = func(duration time.Duration) string {
+		return fmt.Sprintf("%.3f", duration.Seconds())
+	}
+
+	// Take measurement of various states
+	sw.Lap("Create File")
+
+	go func() {
+		for i := 0; i < 2; i++ {
+			time.Sleep(time.Millisecond * 250)
+			task := fmt.Sprintf("task %d", i)
+			sw.Lap(task)
+		}
+	}()
+
+	go func() {
+		time.Sleep(time.Second * 1)
+		task := "task A"
+		sw.LapWithData(task, map[string]interface{}{
+			"filename": "word.doc",
+		})
+	}()
+
+	// Simulate some time by sleeping
+	time.Sleep(time.Second * 1)
+
+	doneChan := sw.Lap("Upload File")
+
+	// Stop the timer
+	<-doneChan
+	sw.Stop()
+
+	// Marshal to json
+	if b, err := json.Marshal(sw); err == nil {
+		fmt.Println(string(b))
+	}
+
+	// Expected Output (probably won't be an exact match):
+	// [{"state":"Create File","time":"0.001"},{"state":"task 0","time":"0.255"},{"state":"task 1","time":"0.253"},{"state":"Upload File","time":"0.496"},{"state":"task A","time":"0.000","filename":"word.doc"}]
+
+```
+
+Concurrency should match the number of goroutines that a stopwatch will be used in.
+
