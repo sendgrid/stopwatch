@@ -8,7 +8,7 @@ import (
 )
 
 func TestLaps(t *testing.T) {
-	sw := New(0, true)
+	sw := New(0, true, 1)
 
 	time.Sleep(time.Millisecond * 100)
 	sw.Lap("Session Create")
@@ -17,12 +17,16 @@ func TestLaps(t *testing.T) {
 	sw.Lap("Delete File")
 
 	time.Sleep(time.Millisecond * 300)
-	sw.LapWithData("Close DB", map[string]interface{}{
+
+	lapDone := sw.LapWithData("Close DB", map[string]interface{}{
 		"row_count": 2,
 	})
+	<-lapDone
+
+	sw.Stop()
 
 	if len(sw.Laps()) != 3 {
-		t.Fatal("Created 3 laps but found %d laps.", len(sw.Laps()))
+		t.Fatalf("Created 3 laps but found %d laps.  %+v", len(sw.Laps()), sw.laps)
 	}
 
 	expected := []struct {
