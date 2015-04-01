@@ -3,6 +3,7 @@ package stopwatch
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -17,6 +18,7 @@ type Stopwatch struct {
 	mark        time.Duration // mark is the duration from the start that the most recent lap was started
 	laps        []Lap         //
 	Formatter   func(time.Duration) string
+	mutex       *sync.RWMutex
 }
 
 // New creates a new stopwatch with starting time offset by
@@ -53,6 +55,7 @@ func (s *Stopwatch) Reset(offset time.Duration, active bool) {
 	}
 	s.mark = 0
 	s.laps = nil
+	s.mutex = &sync.RWMutex{}
 }
 
 // Active returns true if the stopwatch is active (counting up)
@@ -92,6 +95,8 @@ func (s *Stopwatch) LapTime() time.Duration {
 // Lap starts a new lap, and returns the length of
 // the previous one.
 func (s *Stopwatch) Lap(state string) Lap {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	lap := Lap{sw: s, state: state, duration: s.ElapsedTime() - s.mark}
 	s.mark = s.ElapsedTime()
 	s.laps = append(s.laps, lap)
@@ -102,6 +107,8 @@ func (s *Stopwatch) Lap(state string) Lap {
 // the previous one allowing the user to pass in additional
 // metadata to be recorded.
 func (s *Stopwatch) LapWithData(state string, data map[string]interface{}) Lap {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	lap := Lap{sw: s, state: state, duration: s.ElapsedTime() - s.mark, data: data}
 	s.mark = s.ElapsedTime()
 	s.laps = append(s.laps, lap)

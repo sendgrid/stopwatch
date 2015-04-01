@@ -49,7 +49,7 @@ func ExampleMultiThread() {
 
 	// Optionally, format that time.Duration how you need it
 	sw.Formatter = func(duration time.Duration) string {
-		return fmt.Sprintf("%.3f", duration.Seconds())
+		return fmt.Sprintf("%.1f", duration.Seconds())
 	}
 
 	// Take measurement of various states
@@ -61,10 +61,9 @@ func ExampleMultiThread() {
 	go func() {
 		defer wg.Done()
 		for i := 0; i < 2; i++ {
-			time.Sleep(time.Millisecond * 500)
-			task := fmt.Sprintf("task %d\n", i)
+			time.Sleep(time.Millisecond * 200)
+			task := fmt.Sprintf("task %d", i)
 			sw.Lap(task)
-			fmt.Println(task)
 		}
 	}()
 
@@ -76,7 +75,6 @@ func ExampleMultiThread() {
 		sw.LapWithData(task, map[string]interface{}{
 			"filename": "word.doc",
 		})
-		fmt.Println(task)
 	}()
 
 	// Simulate some time by sleeping
@@ -92,5 +90,6 @@ func ExampleMultiThread() {
 		fmt.Println(string(b))
 	}
 
-	// Output: ffdsfd
+	// Output:
+	// [{"state":"Create File","time":"0.0"},{"state":"task 0","time":"0.2"},{"state":"task 1","time":"0.2"},{"state":"Upload File","time":"0.6"},{"state":"task A","time":"0.0","filename":"word.doc"}]
 }
