@@ -18,7 +18,7 @@ type Stopwatch struct {
 	mark        time.Duration // mark is the duration from the start that the most recent lap was started
 	laps        []Lap         //
 	Formatter   func(time.Duration) string
-	mutex       *sync.RWMutex
+	sync.RWMutex
 }
 
 // New creates a new stopwatch with starting time offset by
@@ -36,10 +36,11 @@ func (s *Stopwatch) MarshalJSON() ([]byte, error) {
 
 func (s *Stopwatch) String() string {
 	results := make([]string, len(s.laps))
+	s.RLock()
+	defer s.RUnlock()
 	for i, v := range s.laps {
 		results[i] = v.String()
 	}
-
 	return fmt.Sprintf("[%s]", strings.Join(results, ", "))
 }
 
@@ -47,6 +48,8 @@ func (s *Stopwatch) String() string {
 // a new one.
 func (s *Stopwatch) Reset(offset time.Duration, active bool) {
 	now := time.Now()
+	s.Lock()
+	defer s.Unlock()
 	s.start = now.Add(-offset)
 	if active {
 		s.stop = time.Time{}
@@ -55,24 +58,27 @@ func (s *Stopwatch) Reset(offset time.Duration, active bool) {
 	}
 	s.mark = 0
 	s.laps = nil
-	s.mutex = &sync.RWMutex{}
 }
 
 // Active returns true if the stopwatch is active (counting up)
-func (s *Stopwatch) Active() bool {
+func (s *Stopwatch) active() bool {
 	return s.stop.IsZero()
 }
 
 // Stop makes the stopwatch stop counting up
 func (s *Stopwatch) Stop() {
-	if s.Active() {
+	s.Lock()
+	defer s.Unlock()
+	if s.active() {
 		s.stop = time.Now()
 	}
 }
 
 // Start intiates, or resumes the counting up process
 func (s *Stopwatch) Start() {
-	if !s.Active() {
+	s.Lock()
+	defer s.Unlock()
+	if !s.active() {
 		diff := time.Now().Sub(s.stop)
 		s.start = s.start.Add(diff)
 		s.stop = time.Time{}
@@ -80,8 +86,8 @@ func (s *Stopwatch) Start() {
 }
 
 // Elapsed time is the time the stopwatch has been active
-func (s *Stopwatch) ElapsedTime() time.Duration {
-	if s.Active() {
+func (s *Stopwatch) elapsedTime() time.Duration {
+	if s.active() {
 		return time.Since(s.start)
 	}
 	return s.stop.Sub(s.start)
@@ -89,16 +95,18 @@ func (s *Stopwatch) ElapsedTime() time.Duration {
 
 // LapTime is the time since the start of the lap
 func (s *Stopwatch) LapTime() time.Duration {
-	return s.ElapsedTime() - s.mark
+	s.RLock()
+	defer s.RUnlock()
+	return s.elapsedTime() - s.mark
 }
 
 // Lap starts a new lap, and returns the length of
 // the previous one.
 func (s *Stopwatch) Lap(state string) Lap {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-	lap := Lap{sw: s, state: state, duration: s.ElapsedTime() - s.mark}
-	s.mark = s.ElapsedTime()
+	s.Lock()
+	defer s.Unlock()
+	lap := Lap{sw: s, state: state, duration: s.elapsedTime() - s.mark}
+	s.mark = s.elapsedTime()
 	s.laps = append(s.laps, lap)
 	return lap
 }
@@ -107,16 +115,18 @@ func (s *Stopwatch) Lap(state string) Lap {
 // the previous one allowing the user to pass in additional
 // metadata to be recorded.
 func (s *Stopwatch) LapWithData(state string, data map[string]interface{}) Lap {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-	lap := Lap{sw: s, state: state, duration: s.ElapsedTime() - s.mark, data: data}
-	s.mark = s.ElapsedTime()
+	s.Lock()
+	defer s.Unlock()
+	lap := Lap{sw: s, state: state, duration: s.elapsedTime() - s.mark, data: data}
+	s.mark = s.elapsedTime()
 	s.laps = append(s.laps, lap)
 	return lap
 }
 
 // Laps returns a slice of completed lap times
 func (s *Stopwatch) Laps() []Lap {
+	s.RLock()
+	defer s.RUnlock()
 	laps := make([]Lap, len(s.laps))
 	copy(laps, s.laps)
 	return laps

@@ -39,7 +39,7 @@ func ExampleSingleThread() {
 	if b, err := json.Marshal(sw); err == nil {
 		fmt.Println(string(b))
 	}
-	// Output:
+	// Expected Output (may not exactly match):
 	// [{"state":"Create File","time":"0.00"},{"state":"Edit File","time":"0.30"},{"state":"Upload File","time":"1.00"},{"state":"Delete File","time":"0.02","filename":"word.doc"}]
 }
 
