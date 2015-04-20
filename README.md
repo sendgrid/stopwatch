@@ -13,7 +13,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sendgrid/sendlib-go/stopwatch"
+	"github.com/sendgrid/stopwatch"
 	"time"
 )
 
