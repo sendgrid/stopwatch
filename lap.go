@@ -29,8 +29,8 @@ func (l Lap) String() string {
 		}
 		return fmt.Sprintf("{%s, %s}", results, strings.Join(items, ", "))
 
-	} else {
-		// Otherwise, we just record the lap, and duration
-		return fmt.Sprintf("{%s}", results)
 	}
+
+	// Otherwise, we just record the lap, and duration
+	return fmt.Sprintf("{%s}", results)
 }
