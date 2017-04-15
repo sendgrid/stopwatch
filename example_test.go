@@ -57,7 +57,7 @@ func ExampleMultiThread() {
 
 	var wg sync.WaitGroup
 
-	wg.Add(1)
+	wg.Add(2)
 	go func() {
 		defer wg.Done()
 		for i := 0; i < 2; i++ {
@@ -67,10 +67,9 @@ func ExampleMultiThread() {
 		}
 	}()
 
-	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		time.Sleep(time.Second * 1)
+		time.Sleep(time.Millisecond * 1100)
 		task := "task A"
 		sw.LapWithData(task, map[string]interface{}{
 			"filename": "word.doc",
@@ -91,5 +90,5 @@ func ExampleMultiThread() {
 	}
 
 	// Output:
-	// [{"state":"Create File","time":"0.0"},{"state":"task 0","time":"0.2"},{"state":"task 1","time":"0.2"},{"state":"Upload File","time":"0.6"},{"state":"task A","time":"0.0","filename":"word.doc"}]
+	// [{"state":"Create File","time":"0.0"},{"state":"task 0","time":"0.2"},{"state":"task 1","time":"0.2"},{"state":"Upload File","time":"0.6"},{"state":"task A","time":"0.1","filename":"word.doc"}]
 }
