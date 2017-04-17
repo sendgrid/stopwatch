@@ -1,7 +1,7 @@
 stopwatch
 ==========
 
-This package offers a a nice solution to take some measurements of the various states of your application.  It is a non high-resolution timer that is designed to be fast giving you an accurate picture of how long your code paths are taking.
+This package offers a nice solution to take some measurements of the various states of your application.  It is a non high-resolution timer that is designed to be fast giving you an accurate picture of how long your code paths are taking.
 
 [![BuildStatus](https://travis-ci.org/sendgrid/stopwatch.svg?branch=master)](https://travis-ci.org/sendgrid/stopwatch)
 
@@ -23,9 +23,9 @@ func main() {
 	sw := stopwatch.New(0, true)
 
 	// Optionally, format that time.Duration how you need it
-	// sw.UnitFormatter = func(duration time.Duration) string {
+	// sw.SetFormatter(func(duration time.Duration) string {
 	// 	return fmt.Sprintf("%.3f", (duration.Seconds()*1000.0)/1000.0)
-	// }
+	// })
 
 	// Take measurement of various states
 	sw.Lap("Create File")
@@ -63,16 +63,16 @@ You can also use stopwatch inside different goroutines like so,
 	sw := New(0, true)
 
 	// Optionally, format that time.Duration how you need it
-	sw.Formatter = func(duration time.Duration) string {
+	sw.SetFormatter(func(duration time.Duration) string {
 		return fmt.Sprintf("%.1f", duration.Seconds())
-	}
+	})
 
 	// Take measurement of various states
 	sw.Lap("Create File")
 
 	var wg sync.WaitGroup
 
-	wg.Add(1)
+	wg.Add(2)
 	go func() {
 		defer wg.Done()
 		for i := 0; i < 2; i++ {
@@ -82,7 +82,6 @@ You can also use stopwatch inside different goroutines like so,
 		}
 	}()
 
-	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		time.Sleep(time.Second * 1)
