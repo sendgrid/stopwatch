@@ -17,7 +17,7 @@ type Stopwatch struct {
 	start, stop time.Time     // no need for lap, see mark
 	mark        time.Duration // mark is the duration from the start that the most recent lap was started
 	laps        []Lap         //
-	Formatter   func(time.Duration) string
+	formatter   func(time.Duration) string
 	sync.RWMutex
 }
 
@@ -27,7 +27,14 @@ type Stopwatch struct {
 func New(offset time.Duration, active bool) *Stopwatch {
 	var sw Stopwatch
 	sw.Reset(offset, active)
+	sw.SetFormatter(defaultFormatter)
 	return &sw
+}
+
+func (s *Stopwatch) SetFormatter(formatter func(time.Duration) string) {
+	s.Lock()
+	s.formatter = formatter
+	s.Unlock()
 }
 
 func (s *Stopwatch) MarshalJSON() ([]byte, error) {
@@ -105,7 +112,7 @@ func (s *Stopwatch) LapTime() time.Duration {
 func (s *Stopwatch) Lap(state string) Lap {
 	s.Lock()
 	defer s.Unlock()
-	lap := Lap{sw: s, state: state, duration: s.elapsedTime() - s.mark}
+	lap := Lap{formatter: s.formatter, state: state, duration: s.elapsedTime() - s.mark}
 	s.mark = s.elapsedTime()
 	s.laps = append(s.laps, lap)
 	return lap
@@ -117,7 +124,7 @@ func (s *Stopwatch) Lap(state string) Lap {
 func (s *Stopwatch) LapWithData(state string, data map[string]interface{}) Lap {
 	s.Lock()
 	defer s.Unlock()
-	lap := Lap{sw: s, state: state, duration: s.elapsedTime() - s.mark, data: data}
+	lap := Lap{formatter: s.formatter, state: state, duration: s.elapsedTime() - s.mark, data: data}
 	s.mark = s.elapsedTime()
 	s.laps = append(s.laps, lap)
 	return lap

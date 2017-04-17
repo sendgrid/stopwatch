@@ -7,19 +7,15 @@ import (
 )
 
 type Lap struct {
-	sw       *Stopwatch
-	state    string
-	duration time.Duration
-	data     map[string]interface{}
+	formatter func(time.Duration) string
+	sw        *Stopwatch
+	state     string
+	duration  time.Duration
+	data      map[string]interface{}
 }
 
 func (l Lap) String() string {
-	// No formatter defined, no problem use the default
-	if l.sw.Formatter == nil {
-		l.sw.Formatter = defaultFormatter
-	}
-
-	results := fmt.Sprintf("\"state\":\"%s\", \"time\":\"%s\"", l.state, l.sw.Formatter(l.duration))
+	results := fmt.Sprintf("\"state\":\"%s\", \"time\":\"%s\"", l.state, l.formatter(l.duration))
 
 	// If lap contains some data, let's merge it
 	if l.data != nil && len(l.data) > 0 {

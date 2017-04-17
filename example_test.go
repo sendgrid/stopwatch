@@ -12,9 +12,9 @@ func ExampleSingleThread() {
 	sw := New(0, true)
 
 	// Optionally, format that time.Duration how you need it
-	sw.Formatter = func(duration time.Duration) string {
+	sw.SetFormatter(func(duration time.Duration) string {
 		return fmt.Sprintf("%.2f", duration.Seconds())
-	}
+	})
 
 	// Take measurement of various states
 	sw.Lap("Create File")
@@ -48,9 +48,9 @@ func ExampleMultiThread() {
 	sw := New(0, true)
 
 	// Optionally, format that time.Duration how you need it
-	sw.Formatter = func(duration time.Duration) string {
+	sw.SetFormatter(func(duration time.Duration) string {
 		return fmt.Sprintf("%.1f", duration.Seconds())
-	}
+	})
 
 	// Take measurement of various states
 	sw.Lap("Create File")

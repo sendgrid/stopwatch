@@ -160,3 +160,12 @@ func TestMultiThreadLaps(t *testing.T) {
 		}
 	}
 }
+
+func TestPrintLaps(t *testing.T) {
+	sw := New(0, true)
+	sw.Lap("lap1")
+	sw.Lap("lap2")
+	laps := sw.Laps()
+	go laps[0].String()
+	go laps[1].String()
+}
