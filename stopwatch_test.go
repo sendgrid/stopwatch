@@ -169,3 +169,30 @@ func TestPrintLaps(t *testing.T) {
 	go laps[0].String()
 	go laps[1].String()
 }
+
+func TestLapTime(t *testing.T) {
+	sw := New(0, true)
+	sw.Start()
+	time.Sleep(100 * time.Millisecond)
+	laptime1 := sw.LapTime()
+	time.Sleep(100 * time.Millisecond)
+	laptime2 := sw.LapTime()
+	if diff := laptime2.Seconds() - laptime1.Seconds(); diff < 0.1 {
+		t.Errorf("LapTime should be at least 100 milliseconds apart")
+	}
+}
+
+func TestInactiveStart(t *testing.T) {
+	sw := New(0, false)
+	sw.Start()
+	sw.Lap("running lap")
+	sw.Stop()
+	sw.Lap("stopped lap")
+	if laps := sw.Laps(); len(laps) != 2 {
+		t.Errorf("Should capture laps even after Stop()")
+	}
+	sw.Reset(0, false)
+	if laps := sw.Laps(); len(laps) != 0 {
+		t.Errorf("After Reset(), Laps() should be empty")
+	}
+}
