@@ -109,7 +109,7 @@ func TestMultiThreadLaps(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	wg.Add(1)
+	wg.Add(2)
 	go func() {
 		defer wg.Done()
 		for i := 0; i < 2; i++ {
@@ -119,10 +119,9 @@ func TestMultiThreadLaps(t *testing.T) {
 		}
 	}()
 
-	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		time.Sleep(time.Second * 1)
+		time.Sleep(time.Millisecond * 1100)
 		task := "task A"
 		sw.LapWithData(task, map[string]interface{}{
 			"filename": "word.doc",
@@ -145,7 +144,7 @@ func TestMultiThreadLaps(t *testing.T) {
 		{"task 0", "0.2"},
 		{"task 1", "0.2"},
 		{"Upload File", "0.6"},
-		{"task A", "0.0"},
+		{"task A", "0.1"},
 	}
 
 	laps := sw.Laps()
@@ -160,4 +159,13 @@ func TestMultiThreadLaps(t *testing.T) {
 			)
 		}
 	}
+}
+
+func TestPrintLaps(t *testing.T) {
+	sw := New(0, true)
+	sw.Lap("lap1")
+	sw.Lap("lap2")
+	laps := sw.Laps()
+	go laps[0].String()
+	go laps[1].String()
 }
