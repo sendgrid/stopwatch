@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func ExampleSingleThread() {
+func ExampleStopwatch_singleThread() {
 	// Create a new StopWatch that starts off counting
 	sw := New(0, true)
 
@@ -43,7 +43,7 @@ func ExampleSingleThread() {
 	// [{"state":"Create File","time":"0.00"},{"state":"Edit File","time":"0.30"},{"state":"Upload File","time":"1.00"},{"state":"Delete File","time":"0.02","filename":"word.doc"}]
 }
 
-func ExampleMultiThread() {
+func ExampleStopwatch_multiThread() {
 	// Create a new StopWatch that starts off counting
 	sw := New(0, true)
 
