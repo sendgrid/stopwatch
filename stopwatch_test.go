@@ -23,7 +23,7 @@ func TestLaps(t *testing.T) {
 	})
 
 	if len(sw.Laps()) != 3 {
-		t.Fatal("Created 3 laps but found %d laps.", len(sw.Laps()))
+		t.Fatalf("Created 3 laps but found %d laps.", len(sw.Laps()))
 	}
 
 	expected := []struct {
