@@ -2,22 +2,15 @@ package stopwatch
 
 import (
 	"fmt"
-	"math"
 	"sync"
 	"testing"
-	"time"
 )
 
 func TestLaps(t *testing.T) {
 	sw := New(0, true)
 
-	time.Sleep(time.Millisecond * 100)
 	sw.Lap("Session Create")
-
-	time.Sleep(time.Millisecond * 250)
 	sw.Lap("Delete File")
-
-	time.Sleep(time.Millisecond * 300)
 	sw.LapWithData("Close DB", map[string]interface{}{
 		"row_count": 2,
 	})
@@ -26,21 +19,13 @@ func TestLaps(t *testing.T) {
 		t.Fatalf("Created 3 laps but found %d laps.", len(sw.Laps()))
 	}
 
-	expected := []struct {
-		state    string
-		duration string
-	}{
-		{"Session Create", "100"},
-		{"Delete File", "250"},
-		{"Close DB", "300"},
-	}
+	expected := []string{"Session Create", "Delete File", "Close DB"}
 
 	laps := sw.Laps()
 
-	for i, l := range expected {
-		if l.state != laps[i].state ||
-			l.duration != fmt.Sprintf("%d", int(math.Floor(100*laps[i].duration.Seconds())*10)) {
-			t.Fatalf("Lap %d did not contain expected state: %s and/or duration: %s", i, l.state, l.duration)
+	for i, state := range expected {
+		if state != laps[i].state {
+			t.Fatalf("Lap %d did not contain expected state: %s", i, state)
 		}
 	}
 
@@ -54,43 +39,29 @@ func TestLaps(t *testing.T) {
 func TestReset(t *testing.T) {
 	sw := New(0, true)
 
-	time.Sleep(time.Millisecond * 100)
 	sw.Lap("Session Create")
 
-	expected := []struct {
-		state    string
-		duration string
-	}{
-		{"Session Create", "100"},
-	}
+	expected := []string{"Session Create"}
 
 	laps := sw.Laps()
 
-	for i, l := range expected {
-		if l.state != laps[i].state ||
-			l.duration != fmt.Sprintf("%d", int(math.Floor(100*laps[i].duration.Seconds())*10)) {
-			t.Fatalf("Lap %d did not contain expected state: %s and/or duration: %s", i, l.state, l.duration)
+	for i, state := range expected {
+		if state != laps[i].state {
+			t.Fatalf("Lap %d did not contain expected state: %s", i, state)
 		}
 	}
 
 	sw.Reset(0, true)
 
-	time.Sleep(time.Millisecond * 200)
 	sw.Lap("Another Session Create")
 
-	expected = []struct {
-		state    string
-		duration string
-	}{
-		{"Another Session Create", "200"},
-	}
+	expected = []string{"Another Session Create"}
 
 	laps = sw.Laps()
 
-	for i, l := range expected {
-		if l.state != laps[i].state ||
-			l.duration != fmt.Sprintf("%d", int(math.Floor(100*laps[i].duration.Seconds())*10)) {
-			t.Fatalf("Lap %d did not contain expected state: %s and/or duration: %s", i, l.state, l.duration)
+	for i, state := range expected {
+		if state != laps[i].state {
+			t.Fatalf("Lap %d did not contain expected state: %s", i, state)
 		}
 	}
 }
@@ -113,7 +84,6 @@ func TestMultiThreadLaps(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		for i := 0; i < 2; i++ {
-			time.Sleep(time.Millisecond * 200)
 			task := fmt.Sprintf("task %d", i)
 			sw.Lap(task)
 		}
@@ -121,7 +91,6 @@ func TestMultiThreadLaps(t *testing.T) {
 
 	go func() {
 		defer wg.Done()
-		time.Sleep(time.Millisecond * 1100)
 		task := "task A"
 		sw.LapWithData(task, map[string]interface{}{
 			"filename": "word.doc",
@@ -129,34 +98,30 @@ func TestMultiThreadLaps(t *testing.T) {
 	}()
 
 	// Simulate some time by sleeping
-	time.Sleep(time.Second * 1)
 	sw.Lap("Upload File")
 
 	// Stop the timer
 	wg.Wait()
 	sw.Stop()
 
-	expected := []struct {
-		state    string
-		duration string
-	}{
-		{"Create File", "0.0"},
-		{"task 0", "0.2"},
-		{"task 1", "0.2"},
-		{"Upload File", "0.6"},
-		{"task A", "0.1"},
+	expected := map[string]struct{}{
+		"Create File": struct{}{},
+		"task 0":      struct{}{},
+		"task 1":      struct{}{},
+		"Upload File": struct{}{},
+		"task A":      struct{}{},
 	}
 
 	laps := sw.Laps()
 
-	for i, l := range expected {
-		duration := fmt.Sprintf("%.1f", laps[i].duration.Seconds())
-		if l.state != laps[i].state ||
-			l.duration != duration {
-			t.Fatalf(
-				"Lap %d: got state: %s, duration: %s. expected state: %s and/or duration: %s",
-				i, laps[i].state, duration, l.state, l.duration,
-			)
+	if len(laps) != len(expected) {
+		t.Fatalf("Did not get the expected number of lap %d, instead got %d",
+			len(expected), len(laps))
+	}
+
+	for i, l := range laps {
+		if _, found := expected[l.state]; !found {
+			t.Fatalf("Lap %d: got state: %s expected state: %s", i, laps[i].state, l.state)
 		}
 	}
 }
@@ -173,12 +138,10 @@ func TestPrintLaps(t *testing.T) {
 func TestLapTime(t *testing.T) {
 	sw := New(0, true)
 	sw.Start()
-	time.Sleep(100 * time.Millisecond)
 	laptime1 := sw.LapTime()
-	time.Sleep(100 * time.Millisecond)
 	laptime2 := sw.LapTime()
-	if diff := laptime2.Seconds() - laptime1.Seconds(); diff < 0.1 {
-		t.Errorf("LapTime should be at least 100 milliseconds apart")
+	if diff := laptime2.Nanoseconds() - laptime1.Nanoseconds(); diff <= 0 {
+		t.Errorf("LapTime difference should be greater than zero")
 	}
 }
 
