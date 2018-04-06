@@ -8,7 +8,6 @@ import (
 
 type Lap struct {
 	formatter func(time.Duration) string
-	sw        *Stopwatch
 	state     string
 	duration  time.Duration
 	data      map[string]interface{}
