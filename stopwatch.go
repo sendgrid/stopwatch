@@ -86,7 +86,7 @@ func (s *Stopwatch) Start() {
 	s.Lock()
 	defer s.Unlock()
 	if !s.active() {
-		diff := time.Now().Sub(s.stop)
+		diff := time.Since(s.stop)
 		s.start = s.start.Add(diff)
 		s.stop = time.Time{}
 	}
