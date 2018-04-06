@@ -13,21 +13,14 @@ func ExampleStopwatch_singleThread() {
 
 	// Optionally, format that time.Duration how you need it
 	sw.SetFormatter(func(duration time.Duration) string {
-		return fmt.Sprintf("%.2f", duration.Seconds())
+		return fmt.Sprintf("%.0f", duration.Seconds())
 	})
 
 	// Take measurement of various states
 	sw.Lap("Create File")
-
-	// Simulate some time by sleeping
-	time.Sleep(time.Millisecond * 300)
 	sw.Lap("Edit File")
-
-	time.Sleep(time.Second * 1)
 	sw.Lap("Upload File")
-
 	// Take a measurement with some additional metadata
-	time.Sleep(time.Millisecond * 20)
 	sw.LapWithData("Delete File", map[string]interface{}{
 		"filename": "word.doc",
 	})
@@ -39,8 +32,8 @@ func ExampleStopwatch_singleThread() {
 	if b, err := json.Marshal(sw); err == nil {
 		fmt.Println(string(b))
 	}
-	// Expected Output (may not exactly match):
-	// [{"state":"Create File","time":"0.00"},{"state":"Edit File","time":"0.30"},{"state":"Upload File","time":"1.00"},{"state":"Delete File","time":"0.02","filename":"word.doc"}]
+	// Output:
+	// [{"state":"Create File","time":"0"},{"state":"Edit File","time":"0"},{"state":"Upload File","time":"0"},{"state":"Delete File","time":"0","filename":"word.doc"}]
 }
 
 func ExampleStopwatch_multiThread() {
