@@ -7,6 +7,7 @@ import (
 )
 
 func TestLaps(t *testing.T) {
+	t.Parallel()
 	sw := New(0, true)
 
 	sw.Lap("Session Create")
@@ -37,6 +38,7 @@ func TestLaps(t *testing.T) {
 }
 
 func TestReset(t *testing.T) {
+	t.Parallel()
 	sw := New(0, true)
 
 	sw.Lap("Session Create")
@@ -67,6 +69,7 @@ func TestReset(t *testing.T) {
 }
 
 func TestMultiThreadLaps(t *testing.T) {
+	t.Parallel()
 	// Create a new StopWatch that starts off counting
 	sw := New(0, true)
 
@@ -127,6 +130,7 @@ func TestMultiThreadLaps(t *testing.T) {
 }
 
 func TestPrintLaps(t *testing.T) {
+	t.Parallel()
 	sw := New(0, true)
 	sw.Lap("lap1")
 	sw.Lap("lap2")
@@ -136,6 +140,7 @@ func TestPrintLaps(t *testing.T) {
 }
 
 func TestLapTime(t *testing.T) {
+	t.Parallel()
 	sw := New(0, true)
 	sw.Start()
 	laptime1 := sw.LapTime()
@@ -146,6 +151,7 @@ func TestLapTime(t *testing.T) {
 }
 
 func TestInactiveStart(t *testing.T) {
+	t.Parallel()
 	sw := New(0, false)
 	sw.Start()
 	sw.Lap("running lap")
