@@ -31,12 +31,14 @@ func New(offset time.Duration, active bool) *Stopwatch {
 	return &sw
 }
 
+// SetFormatter takes a function that converts time.Duration into a string
 func (s *Stopwatch) SetFormatter(formatter func(time.Duration) string) {
 	s.Lock()
 	s.formatter = formatter
 	s.Unlock()
 }
 
+// MarshalJSON converts into a slice of bytes
 func (s *Stopwatch) MarshalJSON() ([]byte, error) {
 	return []byte(s.String()), nil
 }
