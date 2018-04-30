@@ -4,6 +4,8 @@ stopwatch
 This package offers a nice solution to take some measurements of the various states of your application.  It is a non high-resolution timer that is designed to be fast giving you an accurate picture of how long your code paths are taking.
 
 [![BuildStatus](https://travis-ci.org/sendgrid/stopwatch.svg?branch=master)](https://travis-ci.org/sendgrid/stopwatch)
+[![Go Report Card](https://goreportcard.com/badge/github.com/sendgrid/stopwatch)](https://goreportcard.com/report/github.com/sendgrid/stopwatch)
+[![GoDoc](https://godoc.org/github.com/sendgrid/stopwatch?status.svg)](https://godoc.org/github.com/sendgrid/stopwatch)
 
 ### Usage
 

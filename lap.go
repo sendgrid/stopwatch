@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Lap represents a split time from the stopwatch
 type Lap struct {
 	formatter func(time.Duration) string
 	state     string

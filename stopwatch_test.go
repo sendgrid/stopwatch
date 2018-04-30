@@ -108,11 +108,11 @@ func TestMultiThreadLaps(t *testing.T) {
 	sw.Stop()
 
 	expected := map[string]struct{}{
-		"Create File": struct{}{},
-		"task 0":      struct{}{},
-		"task 1":      struct{}{},
-		"Upload File": struct{}{},
-		"task A":      struct{}{},
+		"Create File": {},
+		"task 0":      {},
+		"task 1":      {},
+		"Upload File": {},
+		"task A":      {},
 	}
 
 	laps := sw.Laps()
