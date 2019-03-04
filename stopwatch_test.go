@@ -165,3 +165,42 @@ func TestInactiveStart(t *testing.T) {
 		t.Errorf("After Reset(), Laps() should be empty")
 	}
 }
+
+func TestTimeTotal(t *testing.T) {
+	t.Parallel()
+
+	sw := New(0, false)
+	totalAfterStart := sw.ElapsedTime().Nanoseconds()
+	if totalAfterStart != 0 {
+		t.Errorf("TotalTime must be zero after stopwatch creation")
+	}
+	sw.Start()
+	sw.Lap("first")
+	totalAfterLap1 := sw.ElapsedTime().Nanoseconds()
+	if totalAfterLap1 <= 0 {
+		t.Errorf("TotalTime must be grater than zero after lap 1")
+	}
+	sw.Lap("second")
+	totalAfterLap2 := sw.ElapsedTime().Nanoseconds()
+	if totalAfterLap2 <= totalAfterLap1 {
+		t.Errorf("TotalTime after lap 2 must be greater then after lap 1")
+	}
+	sw.Stop()
+	totalAfterStop1 := sw.ElapsedTime().Nanoseconds()
+	totalAfterStop2 := sw.ElapsedTime().Nanoseconds()
+	if totalAfterStop1 != totalAfterStop2 {
+		t.Errorf("TotalTime must not change after stop")
+	}
+
+	sw.Start()
+
+	totalAfterRestart1 := sw.ElapsedTime().Nanoseconds()
+	totalAfterRestart2 := sw.ElapsedTime().Nanoseconds()
+	if totalAfterRestart1 >= totalAfterRestart2 {
+		t.Errorf("TotalTime must run after restart")
+	}
+	if totalAfterRestart1 <= totalAfterStop2 {
+		t.Errorf("TotalTime after restart must only grow")
+	}
+
+}

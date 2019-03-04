@@ -94,8 +94,8 @@ func (s *Stopwatch) Start() {
 	}
 }
 
-// Elapsed time is the time the stopwatch has been active
-func (s *Stopwatch) elapsedTime() time.Duration {
+// ElapsedTime is the time the stopwatch has been active
+func (s *Stopwatch) ElapsedTime() time.Duration {
 	if s.active() {
 		return time.Since(s.start)
 	}
@@ -106,18 +106,13 @@ func (s *Stopwatch) elapsedTime() time.Duration {
 func (s *Stopwatch) LapTime() time.Duration {
 	s.RLock()
 	defer s.RUnlock()
-	return s.elapsedTime() - s.mark
+	return s.ElapsedTime() - s.mark
 }
 
 // Lap starts a new lap, and returns the length of
 // the previous one.
 func (s *Stopwatch) Lap(state string) Lap {
-	s.Lock()
-	defer s.Unlock()
-	lap := Lap{formatter: s.formatter, state: state, duration: s.elapsedTime() - s.mark}
-	s.mark = s.elapsedTime()
-	s.laps = append(s.laps, lap)
-	return lap
+	return s.LapWithData(state, nil)
 }
 
 // LapWithData starts a new lap, and returns the length of
@@ -126,8 +121,9 @@ func (s *Stopwatch) Lap(state string) Lap {
 func (s *Stopwatch) LapWithData(state string, data map[string]interface{}) Lap {
 	s.Lock()
 	defer s.Unlock()
-	lap := Lap{formatter: s.formatter, state: state, duration: s.elapsedTime() - s.mark, data: data}
-	s.mark = s.elapsedTime()
+	elapsed := s.ElapsedTime()
+	lap := Lap{formatter: s.formatter, state: state, duration: elapsed - s.mark, data: data}
+	s.mark = elapsed
 	s.laps = append(s.laps, lap)
 	return lap
 }
